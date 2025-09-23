@@ -46,6 +46,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Redirigir al feed principal después del registro
+        return redirect('/')->with('success', '¡Bienvenido a RedSocial! Tu cuenta ha sido creada exitosamente.');
     }
 }

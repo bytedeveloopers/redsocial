@@ -1,18 +1,46 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
+import ThemeToggle from '@/Components/ThemeToggle';
 
 export default function GuestLayout({ children }) {
     return (
-        <div className="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0">
-            <div>
-                <Link href="/">
-                    <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" />
-                </Link>
-            </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 transition-colors duration-300">
+            {/* Navegación superior */}
+            <nav className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/30 shadow-lg">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        {/* Logo */}
+                        <div className="flex items-center">
+                            <Link href="/" className="flex items-center gap-3">
+                                <ApplicationLogo className="h-8 w-8 fill-current text-violet-600 dark:text-violet-400" />
+                                <span className="font-bold text-xl text-gray-900 dark:text-gray-100">RedSocial</span>
+                            </Link>
+                        </div>
 
-            <div className="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg">
+                        {/* Navegación y toggle tema */}
+                        <div className="flex items-center gap-4">
+                            <ThemeToggle />
+                            <Link
+                                href="/login"
+                                className="text-gray-700 dark:text-gray-300 hover:text-violet-600 dark:hover:text-violet-400 px-3 py-2 rounded-lg font-medium transition-colors duration-300"
+                            >
+                                Iniciar Sesión
+                            </Link>
+                            <Link
+                                href="/register"
+                                className="bg-gradient-to-r from-violet-600 to-purple-700 text-white px-4 py-2 rounded-lg font-medium hover:from-violet-700 hover:to-purple-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                            >
+                                Registrarse
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            {/* Contenido principal */}
+            <main className="flex-1">
                 {children}
-            </div>
+            </main>
         </div>
     );
 }

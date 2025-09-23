@@ -10,6 +10,8 @@ export default {
         './resources/js/**/*.jsx',
     ],
 
+    darkMode: 'class', // Habilitar modo oscuro basado en clases
+
     safelist: [
         'animate-fade-in',
         'animate-slide-up', 

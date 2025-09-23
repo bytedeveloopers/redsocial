@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -21,5 +23,29 @@ class PostController extends Controller
         }
 
         return back()->with('success', '¡Publicado!');
+    }
+
+    /**
+     * Eliminar un post
+     */
+    public function destroy(Request $request, Post $post)
+    {
+        // Verificar que el usuario sea el dueño del post
+        if ($post->user_id !== $request->user()->id) {
+            abort(403, 'No tienes permiso para eliminar este post');
+        }
+
+        // Eliminar la imagen si existe
+        if ($post->image_path) {
+            Storage::disk('public')->delete($post->image_path);
+        }
+
+        // Eliminar el post (esto también eliminará likes y comentarios por las relaciones)
+        $post->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Post eliminado correctamente'
+        ]);
     }
 }

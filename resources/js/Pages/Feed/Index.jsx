@@ -67,6 +67,48 @@ export default function Index({ posts, currentFilter, followingCount }) {
 
   const FeedContent = (
     <>
+      {/* Mensaje de flash para logout */}
+      {flash?.success && (
+        <div className="mb-6 rounded-2xl bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4 shadow-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                {flash.success}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header para usuarios no autenticados */}
+      {!auth?.user && (
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 p-6 text-white shadow-xl">
+          <div className="text-center">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">¡Bienvenido a RedSocial!</h1>
+            <p className="text-violet-100 mb-4">Únete a nuestra comunidad y comparte tus momentos</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/login"
+                className="px-6 py-3 bg-white text-violet-600 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-300 transform hover:scale-105"
+              >
+                Iniciar Sesión
+              </Link>
+              <Link
+                href="/register"
+                className="px-6 py-3 bg-violet-500 text-white font-semibold rounded-xl hover:bg-violet-400 border-2 border-white/20 transition-all duration-300 transform hover:scale-105"
+              >
+                Registrarse
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filtros de timeline (solo para usuarios autenticados) */}
       {auth?.user && (
         <div className="mb-4 sm:mb-6 flex justify-center">
@@ -98,7 +140,7 @@ export default function Index({ posts, currentFilter, followingCount }) {
       )}
 
       {auth?.user && (
-        <form onSubmit={submit} className="mb-4 sm:mb-6 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/20 p-4 sm:p-6 shadow-xl shadow-violet-500/10">
+        <form onSubmit={submit} className="mb-4 sm:mb-6 rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-4 sm:p-6 shadow-xl shadow-violet-500/10 dark:shadow-indigo-500/20 transition-colors duration-300">
           <div className="flex gap-3">
             {/* Avatar del usuario */}
             <div className="flex-shrink-0">
@@ -106,10 +148,10 @@ export default function Index({ posts, currentFilter, followingCount }) {
                 <img 
                   src={`/storage/${auth.user.avatar_path}`}
                   alt={auth.user.name}
-                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-violet-200"
+                  className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover ring-2 ring-violet-200 dark:ring-indigo-400 transition-colors duration-300"
                 />
               ) : (
-                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-sm font-bold text-white shadow-lg">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 dark:from-indigo-500 dark:to-purple-500 text-sm font-bold text-white shadow-lg">
                   {auth.user.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -118,7 +160,7 @@ export default function Index({ posts, currentFilter, followingCount }) {
             {/* Input de texto */}
             <div className="flex-1">
               <textarea
-                className="w-full resize-none border-0 p-0 text-lg sm:text-base placeholder-gray-500 focus:ring-0 bg-transparent"
+                className="w-full resize-none border-0 p-0 text-lg sm:text-base placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 bg-transparent text-gray-900 dark:text-white transition-colors duration-300"
                 rows={data.body.length > 50 ? 4 : 2}
                 placeholder="¿Qué estás pensando?"
                 value={data.body}
@@ -130,10 +172,10 @@ export default function Index({ posts, currentFilter, followingCount }) {
           </div>
 
           {/* Área de botones y adjuntos */}
-          <div className="mt-3 pt-3 border-t border-violet-200/50">
+          <div className="mt-3 pt-3 border-t border-violet-200/50 dark:border-gray-600/50 transition-colors duration-300">
             <div className="flex items-center justify-between">
               {/* Botón de imagen */}
-              <label className="flex items-center gap-2 text-gray-600 hover:text-violet-600 cursor-pointer transition-all duration-200 hover:bg-violet-50/50 rounded-lg px-3 py-2">
+              <label className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-violet-600 dark:hover:text-indigo-400 cursor-pointer transition-all duration-200 hover:bg-violet-50/50 dark:hover:bg-indigo-900/30 rounded-lg px-3 py-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -149,7 +191,7 @@ export default function Index({ posts, currentFilter, followingCount }) {
               {/* Botón publicar */}
               <button 
                 disabled={processing || !data.body.trim()} 
-                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="rounded-full bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {processing ? '...' : 'Publicar'}
               </button>
@@ -206,25 +248,25 @@ export default function Index({ posts, currentFilter, followingCount }) {
 
       <ul className="space-y-6">
         {posts.data.map((p) => (
-          <li key={p.id} className="rounded-2xl bg-white/70 backdrop-blur-xl border border-white/20 p-4 md:p-6 shadow-xl shadow-violet-500/10 hover:shadow-violet-500/15 hover:shadow-2xl transition-all duration-500 ease-out hover:-translate-y-2 opacity-0 animate-pulse" style={{animation: 'fadeInUp 0.6s ease-out forwards', animationDelay: `${Math.random() * 0.3}s`}}>
-            <div className="mb-3 text-xs md:text-sm text-gray-500">
-              <Link href={`/user/${p.user.id}`} className="font-semibold hover:underline text-sm md:text-base hover:text-violet-600 transition-all duration-200">
+          <li key={p.id} className="rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-4 md:p-6 shadow-xl shadow-violet-500/10 dark:shadow-indigo-500/20 hover:shadow-violet-500/15 dark:hover:shadow-indigo-500/30 hover:shadow-2xl transition-all duration-500 ease-out hover:-translate-y-2 opacity-0 animate-pulse" style={{animation: 'fadeInUp 0.6s ease-out forwards', animationDelay: `${Math.random() * 0.3}s`}}>
+            <div className="mb-3 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+              <Link href={`/user/${p.user.id}`} className="font-semibold hover:underline text-sm md:text-base hover:text-violet-600 dark:hover:text-indigo-400 transition-all duration-200">
                 {p.user.name}
               </Link>
-              {' · '}<span className="text-gray-400">{p.created_at}</span>
+              {' · '}<span className="text-gray-400 dark:text-gray-500">{p.created_at}</span>
             </div>
-            <p className="whitespace-pre-wrap text-sm sm:text-base mb-3 text-gray-800 leading-relaxed">{p.body}</p>
+            <p className="whitespace-pre-wrap text-sm sm:text-base mb-3 text-gray-800 dark:text-gray-100 leading-relaxed transition-colors duration-300">{p.body}</p>
             {p.image && <img src={`/storage/${p.image}`} alt="" className="w-full rounded-xl max-h-64 sm:max-h-96 object-cover shadow-lg hover:scale-105 transition-transform duration-300" />}
             
             {/* Botones de interacción */}
             {auth?.user && (
-              <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-3 sm:gap-4 border-t border-violet-200/50 pt-4">
+              <div className="mt-4 sm:mt-5 flex flex-wrap items-center gap-3 sm:gap-4 border-t border-violet-200/50 dark:border-gray-600/50 pt-4 transition-colors duration-300">
                 <button
                   onClick={() => toggleLike(p.id)}
                   className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
                     p.liked_by_user 
                       ? 'bg-gradient-to-r from-pink-500 to-red-500 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/35' 
-                      : 'bg-gray-100/80 text-gray-600 hover:bg-gray-200/80 hover:text-gray-700'
+                      : 'bg-gray-100/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:text-gray-700 dark:hover:text-gray-200'
                   }`}
                   style={{
                     animation: p.liked_by_user ? 'bounceGentle 0.8s ease-in-out' : 'none'
@@ -242,7 +284,7 @@ export default function Index({ posts, currentFilter, followingCount }) {
                 
                 <button
                   onClick={() => toggleComments(p.id)}
-                  className="flex items-center gap-2 rounded-xl bg-gray-100/80 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-200/80 hover:text-gray-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                  className="flex items-center gap-2 rounded-xl bg-gray-100/80 dark:bg-gray-700/80 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
                   style={{
                     animation: showComments[p.id] ? 'scaleIn 0.4s ease-out' : 'none'
                   }}
@@ -286,14 +328,14 @@ export default function Index({ posts, currentFilter, followingCount }) {
                 {p.comments.length > 0 && (
                   <div className="space-y-3">
                     {p.comments.map((comment) => (
-                      <div key={comment.id} className="rounded bg-gray-50 p-3">
-                        <div className="mb-1 text-xs text-gray-500">
-                          <Link href={`/user/${comment.user.id}`} className="font-medium hover:underline">
+                      <div key={comment.id} className="rounded bg-gray-50 dark:bg-gray-700 p-3 border border-gray-200/30 dark:border-gray-600/30 transition-colors duration-300">
+                        <div className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+                          <Link href={`/user/${comment.user.id}`} className="font-medium hover:underline text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
                             {comment.user.name}
                           </Link>
                           {' · '}{comment.created_at}
                         </div>
-                        <p className="text-sm">{comment.body}</p>
+                        <p className="text-sm text-gray-800 dark:text-gray-200">{comment.body}</p>
                       </div>
                     ))}
                   </div>
@@ -305,8 +347,28 @@ export default function Index({ posts, currentFilter, followingCount }) {
       </ul>
 
       <div className="mt-6 flex items-center justify-between">
-        {posts.prev_page_url ? <Link href={posts.prev_page_url} preserveScroll>← Anterior</Link> : <span />}
-        {posts.next_page_url ? <Link href={posts.next_page_url} preserveScroll>Siguiente →</Link> : <span />}
+        {posts.prev_page_url ? (
+          <Link 
+            href={posts.prev_page_url} 
+            preserveScroll 
+            className="px-4 py-2 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 border border-gray-200/30 dark:border-gray-600/30 rounded-lg hover:bg-gray-50/80 dark:hover:bg-gray-700/80 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300"
+          >
+            ← Anterior
+          </Link>
+        ) : (
+          <span />
+        )}
+        {posts.next_page_url ? (
+          <Link 
+            href={posts.next_page_url} 
+            preserveScroll
+            className="px-4 py-2 bg-white/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 border border-gray-200/30 dark:border-gray-600/30 rounded-lg hover:bg-gray-50/80 dark:hover:bg-gray-700/80 hover:text-gray-900 dark:hover:text-gray-100 transition-all duration-300"
+          >
+            Siguiente →
+          </Link>
+        ) : (
+          <span />
+        )}
       </div>
     </>
   );
@@ -327,7 +389,11 @@ export default function Index({ posts, currentFilter, followingCount }) {
   return (
     <GuestLayout>
       <Head title="Inicio" />
-      <div className="mx-auto max-w-2xl p-4">{FeedContent}</div>
+      <div className="py-6">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+          {FeedContent}
+        </div>
+      </div>
     </GuestLayout>
   );
 }

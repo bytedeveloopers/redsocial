@@ -1,4 +1,5 @@
 ﻿import InputError from '@/Components/InputError';
+import ThemeToggle from '@/Components/ThemeToggle';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
@@ -17,15 +18,21 @@ export default function Register() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-emerald-950 dark:to-teal-950 flex items-center justify-center p-4 transition-colors duration-300">
             <Head title="Crear Cuenta" />
+            
+            {/* Theme Toggle */}
+            <div className="absolute top-4 right-4 z-10">
+                <ThemeToggle />
+            </div>
+            
             <div className="relative w-full max-w-md">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Únete a nosotros</h1>
-                    <p className="text-gray-600">Crea tu cuenta y conecta con amigos</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">Únete a nosotros</h1>
+                    <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">Crea tu cuenta y conecta con amigos</p>
                 </div>
                 
-                <div className="bg-white/70 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20">
+                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-3xl p-8 shadow-xl border border-white/20 dark:border-gray-700/30 transition-colors duration-300">
                     <form onSubmit={submit} className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700">Nombre completo</label>

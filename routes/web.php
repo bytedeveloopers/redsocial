@@ -44,6 +44,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     // Posts
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
     Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
     Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('posts.comment');
 
@@ -54,7 +55,9 @@ Route::middleware('auth')->group(function () {
     // Notificaciones
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll'])->name('notifications.destroyAll');
     Route::get('/notifications/count', [NotificationController::class, 'unreadCount'])->name('notifications.count');
 
     // Chat
@@ -63,7 +66,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/chat/start', [ChatController::class, 'start'])->name('chat.start');
     Route::post('/chat/start', [ChatController::class, 'startConversation'])->name('chat.startConversation');
     Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
+    Route::delete('/chat/{conversation}', [ChatController::class, 'destroyConversation'])->name('chat.destroyConversation');
     Route::post('/chat/{conversation}/message', [ChatController::class, 'sendMessage'])->name('chat.sendMessage');
+    Route::delete('/chat/{conversation}/messages/{message}', [ChatController::class, 'destroyMessage'])->name('chat.destroyMessage');
     Route::get('/chat/{conversation}/messages', [ChatController::class, 'getMessages'])->name('chat.getMessages');
 
     // Perfil (Breeze)

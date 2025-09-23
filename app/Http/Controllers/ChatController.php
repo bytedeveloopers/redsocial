@@ -222,6 +222,60 @@ class ChatController extends Controller
     }
 
     /**
+     * Eliminar una conversación completa
+     */
+    public function destroyConversation(Request $request, Conversation $conversation)
+    {
+        $user = $request->user();
+        
+        // Verificar que el usuario sea parte de la conversación
+        if ($conversation->user_one_id !== $user->id && $conversation->user_two_id !== $user->id) {
+            abort(403);
+        }
+
+        // Eliminar todos los mensajes de la conversación
+        $conversation->messages()->delete();
+        
+        // Eliminar la conversación
+        $conversation->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Conversación eliminada correctamente'
+        ]);
+    }
+
+    /**
+     * Eliminar un mensaje específico
+     */
+    public function destroyMessage(Request $request, Conversation $conversation, Message $message)
+    {
+        $user = $request->user();
+        
+        // Verificar que el usuario sea parte de la conversación
+        if ($conversation->user_one_id !== $user->id && $conversation->user_two_id !== $user->id) {
+            abort(403);
+        }
+
+        // Verificar que el mensaje pertenezca a la conversación
+        if ($message->conversation_id !== $conversation->id) {
+            abort(404);
+        }
+
+        // Solo el remitente puede eliminar el mensaje
+        if ($message->sender_id !== $user->id) {
+            abort(403, 'Solo puedes eliminar tus propios mensajes');
+        }
+
+        $message->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Mensaje eliminado correctamente'
+        ]);
+    }
+
+    /**
      * Obtener conteo de mensajes no leídos
      */
     public function unreadCount(Request $request)

@@ -2,6 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import ThemeToggle from '@/Components/ThemeToggle';
 import { Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { useNotifications } from '@/Hooks/useNotifications';
@@ -24,9 +25,9 @@ export default function AuthenticatedLayout({ header, children }) {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30 dark:from-slate-900 dark:via-gray-900 dark:to-indigo-950/30 transition-colors duration-300">
             {/* Navigation */}
-            <nav className="border-b border-white/20 bg-white/70 sticky top-0 z-40 backdrop-blur-xl shadow-lg shadow-violet-500/5">
+            <nav className="border-b border-white/20 dark:border-gray-700/30 bg-white/70 dark:bg-gray-900/70 sticky top-0 z-40 backdrop-blur-xl shadow-lg shadow-violet-500/5 dark:shadow-indigo-500/10 transition-colors duration-300">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
@@ -96,7 +97,10 @@ export default function AuthenticatedLayout({ header, children }) {
                             </form>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center sm:space-x-4">
+                            {/* Theme Toggle */}
+                            <ThemeToggle className="mr-2" />
+                            
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>

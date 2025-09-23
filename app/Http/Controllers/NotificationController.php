@@ -54,6 +54,37 @@ class NotificationController extends Controller
     }
 
     /**
+     * Eliminar una notificación específica
+     */
+    public function destroy(Request $request, $notificationId)
+    {
+        $notification = $request->user()
+            ->notifications()
+            ->where('id', $notificationId)
+            ->first();
+
+        if (!$notification) {
+            abort(404);
+        }
+
+        $notification->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Eliminar todas las notificaciones del usuario
+     */
+    public function destroyAll(Request $request)
+    {
+        $request->user()
+            ->notifications()
+            ->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
      * Obtener conteo de notificaciones no leídas
      */
     public function unreadCount(Request $request)

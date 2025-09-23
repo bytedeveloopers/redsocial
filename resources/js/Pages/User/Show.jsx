@@ -86,10 +86,36 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
     }
   };
 
+  const handleDeletePost = async (postId) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este post? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/posts/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        // Recargar la página para actualizar los posts
+        router.reload({ only: ['posts'] });
+      } else {
+        alert('Error al eliminar el post');
+      }
+    } catch (error) {
+      console.error('Error al eliminar post:', error);
+      alert('Error al eliminar el post');
+    }
+  };
+
   const ProfileContent = (
     <>
       {/* Header del perfil */}
-      <div className="mb-6 md:mb-8 rounded-lg bg-white p-4 md:p-6 shadow">
+      <div className="mb-6 md:mb-8 rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-4 md:p-6 shadow-xl shadow-violet-500/10 dark:shadow-indigo-500/20 transition-colors duration-300">
         <div className="flex flex-col sm:flex-row items-start gap-4 md:gap-6">
           {/* Avatar */}
           <div className="flex-shrink-0 mx-auto sm:mx-0">
@@ -110,11 +136,11 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
           <div className="flex-grow w-full sm:w-auto">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
               <div className="text-center sm:text-left">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{profileUser.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 transition-colors duration-300">{profileUser.name}</h1>
                 {profileUser.bio && (
-                  <p className="mt-2 text-sm md:text-base text-gray-700">{profileUser.bio}</p>
+                  <p className="mt-2 text-sm md:text-base text-gray-700 dark:text-gray-300 transition-colors duration-300">{profileUser.bio}</p>
                 )}
-                <div className="mt-2 space-y-1 text-xs md:text-sm text-gray-500">
+                <div className="mt-2 space-y-1 text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   <p>Miembro desde {profileUser.created_at}</p>
                   {profileUser.location && (
                     <p className="flex items-center justify-center sm:justify-start gap-1">
@@ -123,7 +149,7 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
                   )}
                   {profileUser.website && (
                     <p className="flex items-center justify-center sm:justify-start gap-1">
-                      🌐 <a href={profileUser.website} target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:text-violet-700 hover:underline transition-colors">
+                      🌐 <a href={profileUser.website} target="_blank" rel="noopener noreferrer" className="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline transition-colors duration-300">
                         {profileUser.website}
                       </a>
                     </p>
@@ -146,10 +172,10 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
                     <>
                       <button
                         onClick={handleFollow}
-                        className={`rounded px-4 py-2 text-sm font-medium ${
+                        className={`rounded-xl px-4 py-2 text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
                           following
-                            ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                            : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg hover:shadow-xl'
                         }`}
                       >
                         {following ? 'Dejar de seguir' : 'Seguir'}
@@ -157,7 +183,7 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
                       
                       <Link
                         href={`/chat/start?user=${profileUser.id}`}
-                        className="inline-block rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700 text-center"
+                        className="inline-block rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-2 text-sm text-white hover:from-green-600 hover:to-emerald-700 text-center shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
                       >
                         Enviar mensaje
                       </Link>
@@ -168,21 +194,21 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
               
               {/* Estadísticas */}
               <div className="flex justify-center lg:justify-end gap-4 md:gap-6 text-center mt-4 lg:mt-0">
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+                <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/20 dark:border-gray-600/20">
                   <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{stats.posts_count}</div>
-                  <div className="text-xs md:text-sm text-gray-600 font-medium">Posts</div>
+                  <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Posts</div>
                 </div>
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+                <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/20 dark:border-gray-600/20">
                   <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{followersCount}</div>
-                  <div className="text-xs md:text-sm text-gray-600 font-medium">Seguidores</div>
+                  <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Seguidores</div>
                 </div>
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+                <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/20 dark:border-gray-600/20">
                   <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{stats.following_count}</div>
-                  <div className="text-xs md:text-sm text-gray-600 font-medium">Siguiendo</div>
+                  <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Siguiendo</div>
                 </div>
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+                <div className="bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-xl p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-white/20 dark:border-gray-600/20">
                   <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-pink-600 to-red-600 bg-clip-text text-transparent">{stats.likes_received}</div>
-                  <div className="text-xs md:text-sm text-gray-600 font-medium">Likes</div>
+                  <div className="text-xs md:text-sm text-gray-600 dark:text-gray-400 font-medium transition-colors duration-300">Likes</div>
                 </div>
               </div>
             </div>
@@ -194,25 +220,40 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
       <div className="space-y-4">
         {posts.data.length > 0 ? (
           posts.data.map((p) => (
-            <div key={p.id} className="rounded-lg bg-white p-4 md:p-6 shadow">
-              <div className="mb-2 text-xs md:text-sm text-gray-500">
-                <Link href={`/user/${p.user.id}`} className="font-medium hover:underline text-sm md:text-base">
-                  {p.user.name}
-                </Link>
-                {' · '}{p.created_at}
+            <div key={p.id} className="rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-4 md:p-6 shadow-xl shadow-violet-500/10 dark:shadow-indigo-500/20 hover:shadow-violet-500/15 dark:hover:shadow-indigo-500/30 hover:shadow-2xl transition-all duration-500 ease-out hover:-translate-y-2">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                  <Link href={`/user/${p.user.id}`} className="font-medium hover:underline text-sm md:text-base hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-300">
+                    {p.user.name}
+                  </Link>
+                  {' · '}{p.created_at}
+                </div>
+                
+                {/* Botón de eliminar (solo para el autor del post) */}
+                {auth?.user && auth.user.id === p.user.id && (
+                  <button
+                    onClick={() => handleDeletePost(p.id)}
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all duration-300 transform hover:scale-110"
+                    title="Eliminar post"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                )}
               </div>
-              <p className="whitespace-pre-wrap text-sm md:text-base mb-3">{p.body}</p>
+              <p className="whitespace-pre-wrap text-sm md:text-base mb-3 text-gray-800 dark:text-gray-100 leading-relaxed transition-colors duration-300">{p.body}</p>
               {p.image && <img src={`/storage/${p.image}`} alt="" className="w-full rounded-lg max-h-64 sm:max-h-96 object-cover" />}
               
               {/* Botones de interacción */}
               {auth?.user && (
-                <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2 md:gap-4 border-t pt-3">
+                <div className="mt-3 md:mt-4 flex flex-wrap items-center gap-2 md:gap-4 border-t border-violet-200/50 dark:border-gray-600/50 pt-3 transition-colors duration-300">
                   <button
                     onClick={() => toggleLike(p.id)}
-                    className={`flex items-center gap-1 rounded px-3 py-2 text-sm ${
+                    className={`flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 ${
                       p.liked_by_user 
-                        ? 'bg-red-100 text-red-600' 
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-pink-500 to-red-500 text-white shadow-lg shadow-pink-500/25 hover:shadow-pink-500/35' 
+                        : 'bg-gray-100/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:text-gray-700 dark:hover:text-gray-200'
                     }`}
                   >
                     <span>{p.liked_by_user ? '❤️' : '🤍'}</span>
@@ -222,7 +263,7 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
                   
                   <button
                     onClick={() => toggleComments(p.id)}
-                    className="flex items-center gap-1 rounded bg-gray-100 px-3 py-2 text-sm text-gray-600 hover:bg-gray-200"
+                    className="flex items-center gap-1 rounded-xl bg-gray-100/80 dark:bg-gray-700/80 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-gray-600/80 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
                   >
                     <span>💬</span>
                     <span className="hidden sm:inline">{p.comments_count} {p.comments_count === 1 ? 'comentario' : 'comentarios'}</span>
@@ -233,7 +274,7 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
 
               {/* Mostrar likes y comentarios para usuarios no autenticados */}
               {!auth?.user && (
-                <div className="mt-3 md:mt-4 flex items-center gap-4 border-t pt-3 text-xs md:text-sm text-gray-500">
+                <div className="mt-3 md:mt-4 flex items-center gap-4 border-t border-violet-200/50 dark:border-gray-600/50 pt-3 text-xs md:text-sm text-gray-500 dark:text-gray-400 transition-colors duration-300">
                   <span>❤️ {p.likes_count} {p.likes_count === 1 ? 'like' : 'likes'}</span>
                   <span>💬 {p.comments_count} {p.comments_count === 1 ? 'comentario' : 'comentarios'}</span>
                 </div>
@@ -241,11 +282,11 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
 
               {/* Sección de comentarios */}
               {auth?.user && showComments[p.id] && (
-                <div className="mt-4 border-t pt-4">
+                <div className="mt-4 border-t border-violet-200/50 dark:border-gray-600/50 pt-4 transition-colors duration-300">
                   {/* Formulario para nuevo comentario */}
                   <form onSubmit={(e) => submitComment(p.id, e)} className="mb-4">
                     <textarea
-                      className="w-full resize-none rounded border p-2 text-sm"
+                      className="w-full resize-none rounded-xl border border-gray-200/50 dark:border-gray-600/50 bg-white/80 dark:bg-gray-700/80 p-3 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 dark:focus:ring-indigo-400/50 focus:border-transparent transition-all duration-300"
                       rows={2}
                       placeholder="Escribe un comentario..."
                       value={commentForms[p.id] || ''}
@@ -253,7 +294,7 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
                     />
                     <button 
                       type="submit"
-                      className="mt-2 rounded bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-700"
+                      className="mt-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 px-4 py-2 text-sm text-white hover:from-violet-700 hover:to-purple-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
                     >
                       Comentar
                     </button>
@@ -263,14 +304,14 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
                   {p.comments.length > 0 && (
                     <div className="space-y-3">
                       {p.comments.map((comment) => (
-                        <div key={comment.id} className="rounded bg-gray-50 p-3">
-                          <div className="mb-1 text-xs text-gray-500">
-                            <Link href={`/user/${comment.user.id}`} className="font-medium hover:underline">
+                        <div key={comment.id} className="rounded-xl bg-gray-50/70 dark:bg-gray-700/70 backdrop-blur-sm p-3 border border-gray-200/30 dark:border-gray-600/30 transition-colors duration-300">
+                          <div className="mb-1 text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
+                            <Link href={`/user/${comment.user.id}`} className="font-medium hover:underline text-gray-700 dark:text-gray-300 hover:text-violet-600 dark:hover:text-violet-400 transition-colors duration-300">
                               {comment.user.name}
                             </Link>
                             {' · '}{comment.created_at}
                           </div>
-                          <p className="text-sm">{comment.body}</p>
+                          <p className="text-sm text-gray-800 dark:text-gray-200 transition-colors duration-300">{comment.body}</p>
                         </div>
                       ))}
                     </div>
@@ -280,12 +321,12 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
             </div>
           ))
         ) : (
-          <div className="rounded-lg bg-white p-6 md:p-8 text-center shadow">
-            <p className="text-gray-500 text-sm md:text-base">
+          <div className="rounded-2xl bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 p-6 md:p-8 text-center shadow-xl shadow-violet-500/10 dark:shadow-indigo-500/20 transition-colors duration-300">
+            <p className="text-gray-500 dark:text-gray-400 text-sm md:text-base transition-colors duration-300">
               {isOwnProfile ? 'Aún no has publicado nada.' : `${profileUser.name} aún no ha publicado nada.`}
             </p>
             {isOwnProfile && (
-              <Link href="/" className="mt-2 inline-block text-indigo-600 hover:underline text-sm md:text-base">
+              <Link href="/" className="mt-2 inline-block text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline text-sm md:text-base transition-colors duration-300">
                 ¡Crea tu primer post!
               </Link>
             )}
@@ -297,13 +338,21 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
       {(posts.prev_page_url || posts.next_page_url) && (
         <div className="mt-6 flex items-center justify-between">
           {posts.prev_page_url ? 
-            <Link href={posts.prev_page_url} preserveScroll className="text-indigo-600 hover:underline">
+            <Link 
+              href={posts.prev_page_url} 
+              preserveScroll 
+              className="px-4 py-2 bg-white/70 dark:bg-gray-800/70 text-violet-600 dark:text-violet-400 border border-violet-200/30 dark:border-gray-600/30 rounded-lg hover:bg-violet-50/80 dark:hover:bg-gray-700/80 hover:text-violet-700 dark:hover:text-violet-300 transition-all duration-300"
+            >
               ← Anterior
             </Link> : 
             <span />
           }
           {posts.next_page_url ? 
-            <Link href={posts.next_page_url} preserveScroll className="text-indigo-600 hover:underline">
+            <Link 
+              href={posts.next_page_url} 
+              preserveScroll 
+              className="px-4 py-2 bg-white/70 dark:bg-gray-800/70 text-violet-600 dark:text-violet-400 border border-violet-200/30 dark:border-gray-600/30 rounded-lg hover:bg-violet-50/80 dark:hover:bg-gray-700/80 hover:text-violet-700 dark:hover:text-violet-300 transition-all duration-300"
+            >
               Siguiente →
             </Link> : 
             <span />
