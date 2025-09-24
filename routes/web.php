@@ -19,6 +19,11 @@ use App\Http\Controllers\ChatController;
 // HOME → Feed
 Route::get('/', [FeedController::class, 'index'])->name('feed.index');
 
+// Endpoint para refrescar CSRF token
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+})->name('csrf.token');
+
 // Perfiles públicos de usuarios
 Route::get('/user/{user}', [UserController::class, 'show'])->name('user.show');
 

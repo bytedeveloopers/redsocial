@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.jsx';
+import apiClient from '@/Utils/apiClient';
 
 export default function Show({ conversation, messages: initialMessages, otherUser }) {
   const { auth } = usePage().props;
@@ -20,73 +21,95 @@ export default function Show({ conversation, messages: initialMessages, otherUse
     scrollToBottom();
   }, [messages]);
 
-  // WebSocket listener para nuevos mensajes en tiempo real
+  // Polling optimizado para nuevos mensajes (sin WebSockets)
   useEffect(() => {
-    if (!window.Echo || !conversation?.id) return;
+    if (!conversation?.id) return;
 
-    const channel = window.Echo.private(`conversation.${conversation.id}`);
-    
-    channel.listen('.message.sent', (e) => {
-      console.log('Nuevo mensaje en conversación:', e);
-      
-      // Solo agregar si el mensaje no es del usuario actual
-      if (e.message.sender_id !== auth.user.id) {
-        setMessages(prev => [...prev, e.message]);
-        setLastMessageId(e.message.id);
-      }
-    });
-
-    return () => {
-      window.Echo.leave(`conversation.${conversation.id}`);
-    };
-  }, [conversation?.id, auth.user.id]);
-
-  // Polling para nuevos mensajes como fallback (menos frecuente)
-  useEffect(() => {
-    const interval = setInterval(async () => {
+    const fetchNewMessages = async () => {
       try {
-        const response = await fetch(`/chat/${conversation.id}/messages?last_message_id=${lastMessageId}`, {
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          },
-        });
-        const data = await response.json();
+        const response = await apiClient.get(
+          `/chat/${conversation.id}/messages?last_message_id=${lastMessageId}`
+        );
         
-        if (data.messages.length > 0) {
-          setMessages(prev => [...prev, ...data.messages]);
-          setLastMessageId(Math.max(...data.messages.map(m => m.id)));
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.messages && data.messages.length > 0) {
+            setMessages(prev => [...prev, ...data.messages]);
+            setLastMessageId(Math.max(...data.messages.map(m => m.id)));
+          }
         }
       } catch (error) {
         console.error('Error fetching new messages:', error);
       }
-    }, 10000); // Solo cada 10 segundos como fallback
+    };
 
-    return () => clearInterval(interval);
-  }, [conversation.id, lastMessageId]);
+    // Polling cada 3 segundos cuando la ventana está activa
+    let interval;
+    const startPolling = () => {
+      interval = setInterval(fetchNewMessages, 3000);
+    };
+
+    const stopPolling = () => {
+      if (interval) clearInterval(interval);
+    };
+
+    // Escuchar eventos de visibilidad de la página
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    // Iniciar polling si la página está visible
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [conversation?.id, lastMessageId]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
 
+    const messageText = newMessage.trim();
     setSending(true);
+    setNewMessage(''); // Limpiar inmediatamente para mejor UX
+
     try {
-      const response = await fetch(`/chat/${conversation.id}/message`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ body: newMessage }),
+      const response = await apiClient.post(`/chat/${conversation.id}/message`, {
+        body: messageText
       });
 
-      const data = await response.json();
-      if (data.success) {
-        setMessages(prev => [...prev, data.message]);
-        setLastMessageId(data.message.id);
-        setNewMessage('');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.message) {
+          setMessages(prev => [...prev, data.message]);
+          setLastMessageId(data.message.id);
+        }
+      } else {
+        // Si falla, restaurar el mensaje
+        setNewMessage(messageText);
+        
+        if (response.status === 422) {
+          const errorData = await response.json();
+          console.error('Validation errors:', errorData.errors);
+        } else {
+          console.error('Error sending message:', response.statusText);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Restaurar el mensaje si hay error
+      setNewMessage(messageText);
     } finally {
       setSending(false);
     }

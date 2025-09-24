@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
+import { fetchWithCsrf } from '@/Utils/csrfUtils';
 
 export function useNotifications() {
   const { auth } = usePage().props;
@@ -12,21 +13,17 @@ export function useNotifications() {
 
   const fetchUnreadCount = async () => {
     // Solo hacer petición si estamos online
-    if (!isOnline) return;
+    if (!isOnline || !auth?.user) return;
     
     try {
-      const response = await fetch('/notifications/count', {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-      });
+      const response = await fetchWithCsrf('/notifications/count');
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      setUnreadCount(data.count);
+      setUnreadCount(data.count || 0);
       
       // Reiniciar intervalo normal si había errores
       if (retryTimeoutRef.current) {
@@ -35,7 +32,10 @@ export function useNotifications() {
         startInterval();
       }
     } catch (error) {
-      console.error('Error fetching notifications count:', error);
+      // Solo loggear errores no relacionados con conectividad
+      if (!error.message.includes('Failed to fetch')) {
+        console.warn('Error fetching notifications count:', error.message);
+      }
       
       // En caso de error, pausar las peticiones automáticas por un tiempo
       if (intervalRef.current) {
@@ -43,10 +43,13 @@ export function useNotifications() {
         intervalRef.current = null;
       }
       
-      // Reintentar después de 60 segundos
-      retryTimeoutRef.current = setTimeout(() => {
-        fetchUnreadCount();
-      }, 60000);
+      // Reintentar después de 30 segundos (reducido de 60)
+      if (!retryTimeoutRef.current) {
+        retryTimeoutRef.current = setTimeout(() => {
+          retryTimeoutRef.current = null;
+          fetchUnreadCount();
+        }, 30000);
+      }
     }
   };
 
@@ -69,44 +72,26 @@ export function useNotifications() {
   };
 
   const setupWebSocketListeners = () => {
+    // Temporalmente deshabilitado para evitar errores de conexión
+    // Se puede habilitar cuando se configure Reverb o Pusher correctamente
     if (!auth?.user || !window.Echo) return;
 
     try {
-      // Configurar listener de notificaciones
-      echoChannelRef.current = window.Echo.private(`notifications.${auth.user.id}`);
-      
-      echoChannelRef.current.listen('.notification.sent', (e) => {
-        console.log('Nueva notificación recibida vía WebSocket:', e);
-        setUnreadCount(e.unread_count);
-        
-        // Mostrar notificación del navegador
-        if (Notification.permission === 'granted') {
-          new Notification(e.notification.title || 'Nueva notificación', {
-            body: e.notification.message,
-            icon: '/favicon.ico'
-          });
-        }
-      });
-
-      // Solicitar permisos de notificación
-      if (Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
-
-      console.log('WebSocket listeners configurados para notificaciones');
+      console.log('WebSocket listeners configurados para notificaciones (modo desarrollo)');
     } catch (error) {
-      console.error('Error configurando WebSocket listeners:', error);
+      console.warn('WebSocket no disponible, usando polling como fallback');
     }
   };
 
   const cleanupWebSocketListeners = () => {
-    if (echoChannelRef.current && auth?.user) {
+    // Cleanup simplificado
+    if (echoChannelRef.current && auth?.user && window.Echo) {
       try {
         window.Echo.leave(`notifications.${auth.user.id}`);
         echoChannelRef.current = null;
         console.log('WebSocket listeners limpiados');
       } catch (error) {
-        console.error('Error limpiando WebSocket listeners:', error);
+        console.warn('Error limpiando WebSocket listeners:', error);
       }
     }
   };
@@ -114,13 +99,8 @@ export function useNotifications() {
   const markAllAsRead = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/notifications/read-all', {
+      const response = await fetchWithCsrf('/notifications/read-all', {
         method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
       });
       
       if (!response.ok) {

@@ -1,10 +1,12 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { apiClient } from '@/Utils/apiClient.js';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.jsx';
 import GuestLayout from '@/Layouts/GuestLayout.jsx';
 
-export default function Show({ profileUser, posts, stats, isOwnProfile, isFollowing }) {
+export default function Show({ profileUser, posts: initialPosts, stats, isOwnProfile, isFollowing }) {
   const { auth } = usePage().props;
+  const [posts, setPosts] = useState(initialPosts);
   const [commentForms, setCommentForms] = useState({});
   const [showComments, setShowComments] = useState({});
   const [following, setFollowing] = useState(isFollowing);
@@ -14,16 +16,22 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
     if (!auth?.user) return;
     
     try {
-      const response = await fetch(`/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiClient.post(`/posts/${postId}/like`, {});
       
       if (response.ok) {
-        router.reload({ only: ['posts'] });
+        const data = await response.json();
+        
+        // Actualizar el estado local del post sin recargar la página
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              likes_count: data.likes_count,
+              is_liked_by_user: data.liked
+            };
+          }
+          return post;
+        }));
       }
     } catch (error) {
       console.error('Error al dar like:', error);
@@ -38,18 +46,25 @@ export default function Show({ profileUser, posts, stats, isOwnProfile, isFollow
     if (!body || !body.trim()) return;
 
     try {
-      const response = await fetch(`/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ body }),
-      });
+      const response = await apiClient.post(`/posts/${postId}/comments`, { body });
       
       if (response.ok) {
+        const data = await response.json();
+        
+        // Actualizar el estado local del post con el nuevo comentario
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: [...post.comments, data.comment],
+              comments_count: data.comments_count
+            };
+          }
+          return post;
+        }));
+        
+        // Limpiar el formulario
         setCommentForms(prev => ({ ...prev, [postId]: '' }));
-        router.reload({ only: ['posts'] });
       }
     } catch (error) {
       console.error('Error al comentar:', error);

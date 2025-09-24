@@ -155,38 +155,56 @@ class ChatController extends Controller
         
         // Verificar que el usuario sea parte de la conversación
         if ($conversation->user_one_id !== $user->id && $conversation->user_two_id !== $user->id) {
-            abort(403);
+            return response()->json([
+                'success' => false,
+                'error' => 'No tienes permiso para enviar mensajes en esta conversación'
+            ], 403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'body' => 'required|string|max:1000'
         ]);
 
-        $message = Message::create([
-            'conversation_id' => $conversation->id,
-            'sender_id' => $user->id,
-            'body' => $request->body
-        ]);
+        try {
+            $message = Message::create([
+                'conversation_id' => $conversation->id,
+                'sender_id' => $user->id,
+                'body' => $validated['body']
+            ]);
 
-        // Actualizar última actividad de la conversación
-        $conversation->update([
-            'last_message_at' => now()
-        ]);
+            // Actualizar última actividad de la conversación
+            $conversation->update([
+                'last_message_at' => now()
+            ]);
 
-        // Cargar el sender para la respuesta
-        $message->load('sender');
+            // Cargar el sender para la respuesta
+            $message->load('sender');
 
-        // Obtener el usuario destinatario y enviar notificación
-        $recipient = $conversation->getOtherUser($user->id);
-        $recipient->notify(new MessageReceived($message));
+            // Obtener el usuario destinatario y enviar notificación (sin errores críticos)
+            try {
+                $recipient = $conversation->getOtherUser($user->id);
+                $recipient->notify(new MessageReceived($message));
+                
+                // Disparar evento de broadcasting solo si está configurado
+                if (config('broadcasting.default') !== 'null') {
+                    broadcast(new MessageSent($message, $recipient));
+                }
+            } catch (\Exception $e) {
+                // Log del error pero no fallar el envío del mensaje
+                \Log::warning('Failed to send notification or broadcast: ' . $e->getMessage());
+            }
 
-        // Disparar evento de broadcasting para tiempo real
-        broadcast(new MessageSent($message, $recipient));
-
-        return response()->json([
-            'message' => $message,
-            'success' => true
-        ]);
+            return response()->json([
+                'message' => $message,
+                'success' => true
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al enviar el mensaje'
+            ], 500);
+        }
     }
 
     /**

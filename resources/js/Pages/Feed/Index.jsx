@@ -2,12 +2,14 @@ import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.jsx';
 import GuestLayout from '@/Layouts/GuestLayout.jsx';
+import { apiClient } from '@/Utils/apiClient.js';
 
-export default function Index({ posts, currentFilter, followingCount }) {
+export default function Index({ posts: initialPosts, currentFilter, followingCount }) {
   const { auth, flash } = usePage().props;
   const { data, setData, post, processing, errors, reset } =
     useForm({ body: '', image: null });
 
+  const [posts, setPosts] = useState(initialPosts);
   const [commentForms, setCommentForms] = useState({});
   const [showComments, setShowComments] = useState({});
 
@@ -18,17 +20,22 @@ export default function Index({ posts, currentFilter, followingCount }) {
 
   const toggleLike = async (postId) => {
     try {
-      const response = await fetch(`/posts/${postId}/like`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await apiClient.post(`/posts/${postId}/like`, {});
       
       if (response.ok) {
-        // Recargar la página para actualizar los datos
-        router.reload({ only: ['posts'] });
+        const data = await response.json();
+        
+        // Actualizar el estado local del post sin recargar la página
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              likes_count: data.likes_count,
+              is_liked_by_user: data.liked
+            };
+          }
+          return post;
+        }));
       }
     } catch (error) {
       console.error('Error al dar like:', error);
@@ -42,19 +49,25 @@ export default function Index({ posts, currentFilter, followingCount }) {
     if (!body || !body.trim()) return;
 
     try {
-      const response = await fetch(`/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ body }),
-      });
+      const response = await apiClient.post(`/posts/${postId}/comments`, { body });
       
       if (response.ok) {
-        // Limpiar el formulario y recargar
+        const data = await response.json();
+        
+        // Actualizar el estado local del post con el nuevo comentario
+        setPosts(prevPosts => prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: [...post.comments, data.comment],
+              comments_count: data.comments_count
+            };
+          }
+          return post;
+        }));
+        
+        // Limpiar el formulario
         setCommentForms(prev => ({ ...prev, [postId]: '' }));
-        router.reload({ only: ['posts'] });
       }
     } catch (error) {
       console.error('Error al comentar:', error);
