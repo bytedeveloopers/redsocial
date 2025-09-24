@@ -1,6 +1,7 @@
 import { Head, Link, usePage, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiClient } from '@/Utils/apiClient.js';
+import { feedUpdater } from '@/Utils/feedUpdater.js';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.jsx';
 import GuestLayout from '@/Layouts/GuestLayout.jsx';
 
@@ -12,6 +13,24 @@ export default function Show({ profileUser, posts: initialPosts, stats, isOwnPro
   const [following, setFollowing] = useState(isFollowing);
   const [followersCount, setFollowersCount] = useState(stats.followers_count);
 
+  // Iniciar el auto-updater cuando el componente se monta
+  useEffect(() => {
+    feedUpdater.start();
+    
+    // Actualizar posts cuando cambie la prop
+    setPosts(initialPosts);
+    
+    // Limpiar al desmontar
+    return () => {
+      feedUpdater.stop();
+    };
+  }, []);
+
+  // Actualizar posts cuando cambie initialPosts
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
+
   const toggleLike = async (postId) => {
     if (!auth?.user) return;
     
@@ -21,7 +40,7 @@ export default function Show({ profileUser, posts: initialPosts, stats, isOwnPro
       if (response.ok) {
         const data = await response.json();
         
-        // Actualizar el estado local del post sin recargar la página
+        // Actualizar el estado local inmediatamente
         setPosts(prevPosts => prevPosts.map(post => {
           if (post.id === postId) {
             return {
@@ -32,9 +51,14 @@ export default function Show({ profileUser, posts: initialPosts, stats, isOwnPro
           }
           return post;
         }));
+        
+        // Activar actualización automática
+        feedUpdater.triggerImmediateUpdate();
       }
     } catch (error) {
       console.error('Error al dar like:', error);
+      // En caso de error, forzar una actualización
+      feedUpdater.triggerImmediateUpdate();
     }
   };
 
@@ -51,7 +75,7 @@ export default function Show({ profileUser, posts: initialPosts, stats, isOwnPro
       if (response.ok) {
         const data = await response.json();
         
-        // Actualizar el estado local del post con el nuevo comentario
+        // Actualizar el estado local inmediatamente
         setPosts(prevPosts => prevPosts.map(post => {
           if (post.id === postId) {
             return {
@@ -65,9 +89,14 @@ export default function Show({ profileUser, posts: initialPosts, stats, isOwnPro
         
         // Limpiar el formulario
         setCommentForms(prev => ({ ...prev, [postId]: '' }));
+        
+        // Activar actualización automática
+        feedUpdater.triggerImmediateUpdate();
       }
     } catch (error) {
       console.error('Error al comentar:', error);
+      // En caso de error, forzar una actualización
+      feedUpdater.triggerImmediateUpdate();
     }
   };
 
