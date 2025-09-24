@@ -4,8 +4,23 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="description" content="SociaLink - Conecta, comparte y descubre. La red social moderna para conectar con personas de todo el mundo.">
+        <meta name="keywords" content="red social, social media, compartir, conectar, posts, mensajes, chat">
+        <meta name="author" content="SociaLink">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="SociaLink - Tu Red Social Moderna">
+        <meta property="og:description" content="Conecta, comparte y descubre. La red social moderna para conectar con personas de todo el mundo.">
+        <meta property="og:image" content="{{ asset('images/logo-dark.jpg') }}">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="SociaLink - Tu Red Social Moderna">
+        <meta name="twitter:description" content="Conecta, comparte y descubre. La red social moderna para conectar con personas de todo el mundo.">
+        <meta name="twitter:image" content="{{ asset('images/logo-dark.jpg') }}">
+
+        <title inertia>SociaLink</title>
 
         <!-- Meta tags for mobile -->
         <meta name="theme-color" content="#4f46e5">
@@ -22,8 +37,9 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- PWA Icons -->
-        <link rel="icon" type="image/svg+xml" href="/favicon.ico">
-        <link rel="apple-touch-icon" href="/favicon.ico">
+        <link rel="icon" type="image/jpeg" href="/images/logo-dark.jpg">
+        <link rel="apple-touch-icon" href="/images/logo-dark.jpg">
+        <link rel="shortcut icon" href="/images/logo-dark.jpg">
 
         <!-- Scripts -->
         @routes

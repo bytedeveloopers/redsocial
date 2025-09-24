@@ -1,5 +1,6 @@
 ﻿import InputError from '@/Components/InputError';
 import ThemeToggle from '@/Components/ThemeToggle';
+import Logo from '@/Components/Logo';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
@@ -28,6 +29,9 @@ export default function Register() {
             
             <div className="relative w-full max-w-md">
                 <div className="text-center mb-8">
+                    <div className="flex justify-center mb-6">
+                        <Logo size="xl" showText={true} />
+                    </div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">Únete a nosotros</h1>
                     <p className="text-gray-600 dark:text-gray-300 transition-colors duration-300">Crea tu cuenta y conecta con amigos</p>
                 </div>

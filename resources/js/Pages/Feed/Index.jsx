@@ -89,7 +89,7 @@ export default function Index({ posts, currentFilter, followingCount }) {
       {!auth?.user && (
         <div className="mb-6 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 p-6 text-white shadow-xl">
           <div className="text-center">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">¡Bienvenido a RedSocial!</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">¡Bienvenido a SociaLink!</h1>
             <p className="text-violet-100 mb-4">Únete a nuestra comunidad y comparte tus momentos</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link

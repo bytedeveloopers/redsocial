@@ -1,4 +1,4 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
+import Logo from '@/Components/Logo';
 import { Link } from '@inertiajs/react';
 import ThemeToggle from '@/Components/ThemeToggle';
 
@@ -11,9 +11,8 @@ export default function GuestLayout({ children }) {
                     <div className="flex justify-between items-center h-16">
                         {/* Logo */}
                         <div className="flex items-center">
-                            <Link href="/" className="flex items-center gap-3">
-                                <ApplicationLogo className="h-8 w-8 fill-current text-violet-600 dark:text-violet-400" />
-                                <span className="font-bold text-xl text-gray-900 dark:text-gray-100">RedSocial</span>
+                            <Link href="/" className="flex items-center">
+                                <Logo size="md" showText={true} />
                             </Link>
                         </div>
 
